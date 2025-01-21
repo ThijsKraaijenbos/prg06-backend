@@ -1,11 +1,9 @@
 import mongoose from 'mongoose';
 
-const sillyCatSchema = new mongoose.Schema({
-    name: {type: String, required: true},
-    description: {type: String, required: true},
-    imgUrl: {type: String, required: true}
+const tagSchema = new mongoose.Schema({
+    tagName: {type: String, required: true},
 },{
-    // timestamps: true,
+    timestamps: true,
     toJSON: {
         virtuals: true,
         versionKey: false,
@@ -26,5 +24,5 @@ const sillyCatSchema = new mongoose.Schema({
 });
 
 
-const SillyCat = mongoose.model("SillyCat", sillyCatSchema)
-export default SillyCat;
+const Tag = mongoose.model("Tag", tagSchema)
+export default Tag;
