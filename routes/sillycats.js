@@ -7,15 +7,15 @@ const router = express.Router()
 
 router.get('/', async (req, res) => {
     try {
-        const page = parseInt(req.query.page);
-        const limit = parseInt(req.query.limit);
+
+        const totalItems = await sillyCat.countDocuments()
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || parseInt(totalItems);
+        const totalPages = Math.ceil(totalItems / limit)
 
         const cats = await SillyCat.find({})
             .skip((page - 1) * limit)
             .limit(limit);
-
-        const totalItems = await sillyCat.countDocuments()
-        const totalPages = totalItems / limit
 
         const collection = (
             {
@@ -42,18 +42,21 @@ router.get('/', async (req, res) => {
                             "page": totalPages,
                             "href": `${process.env.BASE_URL}/?page=${totalPages}&limit=${limit}`
                         },
-                        "previous": null,
-                        "next": {
+                        "previous": page > 1 ? {
+                            "page": page - 1,
+                            "href": `${process.env.BASE_URL}/?page=${page + 1}&limit=${limit}`
+                        } : null,
+                        "next": page < totalPages ? {
                             "page": page + 1,
                             "href": `${process.env.BASE_URL}/?page=${page + 1}&limit=${limit}`
-                        }
+                        } : null
                     }
                 }
             })
         res.status(200).json(collection)
     }
     catch (error) {
-        res.status(500).json(error)
+        res.status(400).json(error)
     }
 })
 
@@ -88,7 +91,7 @@ router.post('/', async(req, res) => {
         res.status(201).json({success:true})
 
         } catch (error) {
-        res.status(401).json(error)
+        res.status(400).json(error)
     }
 })
 
@@ -119,6 +122,12 @@ router.put('/:id', async(req,res) => {
         const {id} = req.params
         const {name, description, imgUrl} = req.body
 
+        if (!name || !description || !imgUrl) {
+            return res.status(400).json({
+                message: "Missing required fields: name, description, and imgUrl"
+            });
+        }
+
         const updateCat = await SillyCat.findByIdAndUpdate(id, {
             name,
             description,
@@ -128,16 +137,17 @@ router.put('/:id', async(req,res) => {
             runValidators: true
         });
 
+
         if (!updateCat) {
             return res.status(404).json({ message: 'Cat not found' });
         }
 
-        const updatedCatDebugging = await SillyCat.findById(id)
-
-        res.status(200).json(updatedCatDebugging);
-
+        // const updatedCatDebugging = await SillyCat.findById(id)
         // console.log("body="+ JSON.stringify(req.body, null, 4))
         // console.log("updateCat="+ updatedCatDebugging)
+
+        res.status(200).json(updateCat);
+
     } catch (error) {
         res.status(400).send(error);
     }
@@ -155,7 +165,7 @@ router.delete('/:id', async(req,res) => {
 
         res.sendStatus(204)
     } catch (error) {
-        res.status(404).send(error)
+        res.status(400).send(error)
     }
 })
 

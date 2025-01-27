@@ -5,8 +5,7 @@ import sillycats from "./routes/sillycats.js";
 const app = express();
 
 mongoose.connect('mongodb://127.0.0.1:27017/silly-cats');
-mongoose.set('debug', true); // Dit laat je zien welke queries worden uitgevoerd
-
+mongoose.set('debug', true); // Dit laat zien in console welke queries worden uitgevoerd
 
 
 app.use((req, res, next) => {
