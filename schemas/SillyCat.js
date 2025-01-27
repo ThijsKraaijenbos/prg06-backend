@@ -13,10 +13,10 @@ const sillyCatSchema = new mongoose.Schema({
 
             ret._links = {
                 self: {
-                    href: process.env.BASE_URL + `/silly-cats/${ret.id}`
+                    href: `${process.env.BASE_URL}/silly-cats/${ret.id}`
                 },
                 collection: {
-                    href: process.env.BASE_URL + `/silly-cats`
+                    href: `${process.env.BASE_URL}/silly-cats`
                 }
             }
 

@@ -7,20 +7,50 @@ const router = express.Router()
 
 router.get('/', async (req, res) => {
     try {
-            const cats = await SillyCat.find({})
-            const collection = (
-                {
-                    "items": cats,
+        const page = parseInt(req.query.page);
+        const limit = parseInt(req.query.limit);
+
+        const cats = await SillyCat.find({})
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+        const totalItems = await sillyCat.countDocuments()
+        const totalPages = totalItems / limit
+
+        const collection = (
+            {
+                "items": cats,
+                "_links": {
+                    "self": {
+                        "href": process.env.BASE_URL+"/silly-cats"
+                    },
+                    "collection": {
+                        "href": process.env.BASE_URL+"/silly-cats"
+                    }
+                },
+                "pagination": {
+                    "currentPage": page,
+                    "currentItems": limit,
+                    "totalPages": totalPages,
+                    "totalItems": totalItems,
                     "_links": {
-                        "self": {
-                            "href": process.env.BASE_URL+"/silly-cats"
+                        "first": {
+                            "page": 1,
+                            "href": `${process.env.BASE_URL}/?page=1&limit=${limit}`
                         },
-                        "collection": {
-                            "href": process.env.BASE_URL+"/silly-cats"
+                        "last": {
+                            "page": totalPages,
+                            "href": `${process.env.BASE_URL}/?page=${totalPages}&limit=${limit}`
+                        },
+                        "previous": null,
+                        "next": {
+                            "page": page + 1,
+                            "href": `${process.env.BASE_URL}/?page=${page + 1}&limit=${limit}`
                         }
                     }
-                })
-            res.status(200).json(collection)
+                }
+            })
+        res.status(200).json(collection)
     }
     catch (error) {
         res.status(500).json(error)
@@ -29,13 +59,31 @@ router.get('/', async (req, res) => {
 
 router.post('/', async(req, res) => {
     try {
-        const {name, description, imgUrl} = req.body
+        const {name, description, imgUrl, method, seedAmount, reset} = req.body
 
-        await SillyCat.create({
-            name: name,
-            description: description,
-            imgUrl: imgUrl
+        if (reset === true) {
+            await SillyCat.deleteMany()
+        }
+
+        if (method === "SEED") {
+            for (let i = 0 ; i < seedAmount; i++) {
+                await SillyCat.create({
+                    name: faker.person.firstName(),
+                    description: faker.person.bio(),
+                    imgUrl: "https://static.wikia.nocookie.net/floppapedia-revamped/images/a/a4/Unico.jpg/revision/latest?cb=20221117214435"
+                })
+            }
+            res.status(200).json({success:true})
+        }
+        
+        const createCat = await SillyCat.create({
+            name,
+            description,
+            imgUrl
         })
+
+        console.log("body="+ JSON.stringify(req.body, null, 4))
+        console.log("createCat="+ createCat)
 
         res.status(201).json({success:true})
 
@@ -59,19 +107,7 @@ router.get('/:id', async (req, res) => {
             return res.status(404).send("Cat with this ID doesn't exist")
         }
 
-        const collection = (
-            {
-                "items": cat,
-                "_links": {
-                    "self": {
-                        "href": process.env.BASE_URL+`/silly-cats/${id}`
-                    },
-                    "collection": {
-                        "href": process.env.BASE_URL+`/silly-cats`
-                    }
-                }
-            })
-        res.status(200).json(collection)
+        res.status(200).json(cat)
     }
     catch (error) {
         res.status(400).json(error)
@@ -83,24 +119,25 @@ router.put('/:id', async(req,res) => {
         const {id} = req.params
         const {name, description, imgUrl} = req.body
 
-        // Validatie voor lege velden
-        if (name === "" || description === "" || imgUrl === "") {
-            return res.status(400).json({ message: 'Fields cannot be empty' });
-        }
-
         const updateCat = await SillyCat.findByIdAndUpdate(id, {
             name,
             description,
             imgUrl
+        }, {
+            new: true,
+            runValidators: true
         });
 
         if (!updateCat) {
             return res.status(404).json({ message: 'Cat not found' });
         }
 
-        // Teruggeven van de nieuwe versie
-        const updatedCat = await SillyCat.findById(id);
-        res.status(200).json(updatedCat);
+        const updatedCatDebugging = await SillyCat.findById(id)
+
+        res.status(200).json(updatedCatDebugging);
+
+        // console.log("body="+ JSON.stringify(req.body, null, 4))
+        // console.log("updateCat="+ updatedCatDebugging)
     } catch (error) {
         res.status(400).send(error);
     }
@@ -126,27 +163,6 @@ router.options('/:id', (req, res) => {
     res.setHeader('Access-Control-Allow-Methods', ['GET','POST','PUT','OPTIONS'])
     res.setHeader('Allow', 'GET, PUT, DELETE, OPTIONS');
     res.status(204).send()
-})
-
-router.post('/seed', async (req, res) => {
-    try {
-        let {amount, reset} = req.body
-
-        if (reset === true) {
-            await SillyCat.deleteMany()
-        }
-
-        for (let i = 0 ; i < amount; i++) {
-            await SillyCat.create({
-                name: faker.person.firstName(),
-                description: faker.person.bio(),
-                imgUrl: "https://static.wikia.nocookie.net/floppapedia-revamped/images/a/a4/Unico.jpg/revision/latest?cb=20221117214435"
-            })
-        }
-        res.status(200).json({success:true})
-    } catch (error) {
-        res.status(400).send(error)
-    }
 })
 
 export default router
