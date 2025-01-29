@@ -4,11 +4,7 @@ const sillyCatSchema = new mongoose.Schema({
     name: {type: String, required: true},
     description: {type: String, required: true},
     displayTag: {type: String, required: true, max: 5},
-    imgUrl: {
-        type: String,
-        required: true,
-        match: /^(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp))$/i
-    },
+    imgUrl: {type: String, required: true},
 },{
     // timestamps: true,
     toJSON: {
