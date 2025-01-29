@@ -1,14 +1,13 @@
 import express from "express";
 import {faker} from "@faker-js/faker";
 import SillyCat from "../schemas/SillyCat.js";
-import sillyCat from "../schemas/SillyCat.js";
 
 const router = express.Router()
 
 router.get('/', async (req, res) => {
     try {
 
-        const totalItems = await sillyCat.countDocuments()
+        const totalItems = await SillyCat.countDocuments()
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || parseInt(totalItems);
         const totalPages = Math.ceil(totalItems / limit)
@@ -62,21 +61,26 @@ router.get('/', async (req, res) => {
 
 router.post('/', async(req, res) => {
     try {
-        const {name, description, imgUrl, method, seedAmount, reset} = req.body
-
-        if (reset === true) {
-            await SillyCat.deleteMany()
-        }
+        const {name, description, imgUrl, method, amount, reset} = req.body
 
         if (method === "SEED") {
-            for (let i = 0 ; i < seedAmount; i++) {
+
+            if (!amount) {
+                return res.status(404).json({message: "Please enter an amount to seed"})
+            }
+
+            if (reset === true) {
+                await SillyCat.deleteMany()
+            }
+
+            for (let i = 0 ; i < amount; i++) {
                 await SillyCat.create({
                     name: faker.person.firstName(),
                     description: faker.person.bio(),
-                    imgUrl: "https://static.wikia.nocookie.net/floppapedia-revamped/images/a/a4/Unico.jpg/revision/latest?cb=20221117214435"
+                    imgUrl: faker.image.urlLoremFlickr({height: 200, width:200, category: 'cat'})
                 })
             }
-            res.status(200).json({success:true})
+            return res.status(200).json({success:true, message: "Successfully ran seeder"})
         }
         
         const createCat = await SillyCat.create({
@@ -85,8 +89,8 @@ router.post('/', async(req, res) => {
             imgUrl
         })
 
-        console.log("body="+ JSON.stringify(req.body, null, 4))
-        console.log("createCat="+ createCat)
+        // console.log("body="+ JSON.stringify(req.body, null, 4))
+        // console.log("createCat="+ createCat)
 
         res.status(201).json({success:true})
 
@@ -96,9 +100,9 @@ router.post('/', async(req, res) => {
 })
 
 router.options('/', (req, res) => {
-    res.setHeader('Access-Control-Allow-Methods', ['GET','POST', 'OPTIONS'])
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
     res.setHeader('Allow', 'GET, POST, OPTIONS');
-    res.status(204).send()
+    res.sendStatus(204)
 })
 
 router.get('/:id', async (req, res) => {
@@ -170,9 +174,10 @@ router.delete('/:id', async(req,res) => {
 })
 
 router.options('/:id', (req, res) => {
-    res.setHeader('Access-Control-Allow-Methods', ['GET','POST','PUT','OPTIONS'])
+    res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, DELETE, OPTIONS')
     res.setHeader('Allow', 'GET, PUT, DELETE, OPTIONS');
-    res.status(204).send()
+    res.sendStatus(204)
+    console.log("attempted to go through preflight")
 })
 
 export default router
