@@ -61,7 +61,7 @@ router.get('/', async (req, res) => {
 
 router.post('/', async(req, res) => {
     try {
-        const {name, description, imgUrl, method, amount, reset} = req.body
+        const {name, description, displayTag, imgUrl, furColor, birthDay, gender, method, amount, reset} = req.body
 
         if (method === "SEED") {
 
@@ -77,7 +77,11 @@ router.post('/', async(req, res) => {
                 await SillyCat.create({
                     name: faker.person.firstName(),
                     description: faker.person.bio(),
-                    imgUrl: faker.image.urlLoremFlickr({height: 200, width:200, category: 'cat'})
+                    displayTag: "Seed",
+                    imgUrl: faker.image.urlLoremFlickr({height: 200, width:200, category: 'cat'}),
+                    furColor: faker.image.urlLoremFlickr({height: 200, width:200, category: 'cat'}),
+                    birthDay: faker.image.urlLoremFlickr({height: 200, width:200, category: 'cat'}),
+                    gender: faker.person.sex(),
                 })
             }
             return res.status(200).json({success:true, message: "Successfully ran seeder"})
@@ -86,7 +90,11 @@ router.post('/', async(req, res) => {
         const createCat = await SillyCat.create({
             name,
             description,
-            imgUrl
+            displayTag,
+            imgUrl,
+            furColor,
+            birthDay,
+            gender
         })
 
         // console.log("body="+ JSON.stringify(req.body, null, 4))
@@ -124,18 +132,16 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async(req,res) => {
     try {
         const {id} = req.params
-        const {name, description, imgUrl} = req.body
-
-        if (!name || !description || !imgUrl) {
-            return res.status(400).json({
-                message: "Missing required fields: name, description, and imgUrl"
-            });
-        }
+        const {name, description, displayTag, imgUrl, furColor, birthDay, gender} = req.body
 
         const updateCat = await SillyCat.findByIdAndUpdate(id, {
             name,
             description,
-            imgUrl
+            displayTag,
+            imgUrl,
+            furColor,
+            birthDay,
+            gender
         }, {
             new: true,
             runValidators: true

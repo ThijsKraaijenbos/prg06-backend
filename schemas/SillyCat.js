@@ -3,10 +3,13 @@ import mongoose from 'mongoose';
 const sillyCatSchema = new mongoose.Schema({
     name: {type: String, required: true},
     description: {type: String, required: true},
-    displayTag: {type: String, required: true, max: 5},
+    displayTag: {type: String, required: true, maxLength: 7},
     imgUrl: {type: String, required: true},
+    furColor: {type: String},
+    birthDay: {type: Date},
+    gender: {type: String},
 },{
-    // timestamps: true,
+    timestamps: true,
     toJSON: {
         virtuals: true,
         versionKey: false,
