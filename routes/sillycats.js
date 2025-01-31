@@ -61,7 +61,7 @@ router.get('/', async (req, res) => {
 
 router.post('/', async(req, res) => {
     try {
-        const {name, description, displayTag, imgUrl, furColor, birthDay, gender, method, amount, reset} = req.body
+        const {name, description, displayTag, imgUrl, furColor, birthDate, gender, method, amount, reset} = req.body
 
         if (method === "SEED") {
 
@@ -79,8 +79,8 @@ router.post('/', async(req, res) => {
                     description: faker.person.bio(),
                     displayTag: "Seed",
                     imgUrl: faker.image.urlLoremFlickr({height: 200, width:200, category: 'cat'}),
-                    furColor: faker.image.urlLoremFlickr({height: 200, width:200, category: 'cat'}),
-                    birthDay: faker.image.urlLoremFlickr({height: 200, width:200, category: 'cat'}),
+                    furColor: faker.helpers.arrayElement(['red', 'tuxedo', 'brown', 'black', 'white', 'calico']),
+                    birthDate: faker.date.anytime(),
                     gender: faker.person.sex(),
                 })
             }
@@ -90,10 +90,10 @@ router.post('/', async(req, res) => {
         const createCat = await SillyCat.create({
             name,
             description,
-            displayTag,
+            displayTag: displayTag ?? "Silly",
             imgUrl,
             furColor,
-            birthDay,
+            birthDate,
             gender
         })
 
@@ -132,15 +132,15 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async(req,res) => {
     try {
         const {id} = req.params
-        const {name, description, displayTag, imgUrl, furColor, birthDay, gender} = req.body
+        const {name, description, displayTag, imgUrl, furColor, birthDate, gender} = req.body
 
         const updateCat = await SillyCat.findByIdAndUpdate(id, {
             name,
             description,
-            displayTag,
+            displayTag: displayTag ?? "Silly",
             imgUrl,
             furColor,
-            birthDay,
+            birthDate,
             gender
         }, {
             new: true,
