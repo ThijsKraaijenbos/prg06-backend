@@ -55,7 +55,7 @@ router.get('/', async (req, res) => {
         res.status(200).json(collection)
     }
     catch (error) {
-        res.status(400).json(error)
+        res.status(500).json(error)
     }
 })
 
@@ -66,7 +66,7 @@ router.post('/', async(req, res) => {
         if (method === "SEED") {
 
             if (!amount) {
-                return res.status(404).json({message: "Please enter an amount to seed"})
+                return res.status(400).json({message: "Please enter an amount to seed"})
             }
 
             if (reset === true) {
@@ -170,7 +170,7 @@ router.delete('/:id', async(req,res) => {
         const removeCat = await SillyCat.findByIdAndDelete(id)
 
         if (!removeCat) {
-            return res.status(400).send("Cat with this ID doesn't exist")
+            return res.status(404).send("Cat with this ID doesn't exist")
         }
 
         res.sendStatus(204)
